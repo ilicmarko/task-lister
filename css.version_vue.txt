@@ -1,0 +1,172 @@
+<template>
+  <div class="graph">
+   <div class="blobs">
+     <transition-group @leave="leave" name="list" class="blob__tasks" tag="div">
+     <div 
+        class="blob"
+        v-for="(user, index) in users"
+        @click="increment(index)"
+        :key="user.username"
+      >
+        {{ user.tasks }}
+      </div>
+    </transition-group>
+
+
+      <div class="blob" >17</div>
+    </transition>
+    <div class="blob blob--main">{{ tasks }}</div>
+    </div>
+
+    <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <defs>
+        <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+        <feBlend in="SourceGraphic" in2="goo" />
+        </filter>
+    </defs>
+    </svg>
+  </div>
+</template>
+
+<script>
+require('velocity-animate');
+
+export default {
+  name: 'Graph',
+  data() {
+    return {
+      tasks: 5,
+      users: [
+        {
+          username: 'Maverick',
+          tasks: 5,
+        },
+        {
+          username: 'Pera',
+          tasks: 10,
+        },
+        {
+          username: 'Miki',
+          tasks: 2,
+        },
+        {
+          username: 'Kaca',
+          tasks: 4,
+        },
+      ],
+    };
+  },
+  methods: {
+    increment(index) {
+      this.users[index].tasks += 1;
+      this.tasks -= 1;
+    },
+    leave(el) {
+      el.classList.add('blob-in');
+      const elemBox = el.getBoundingClientRect();
+      const blob = el;
+      const app = document.getElementById('app').getBoundingClientRect();
+      console.log(elemBox);
+
+      blob.style.top = `${elemBox.top - app.top}px`;
+      blob.style.left = `${elemBox.left - app.left}px`;
+      blob.style.width = `${elemBox.width}px`;
+      blob.style.height = `${elemBox.width}px`;
+      blob.style.lineHeight = `${elemBox.width}px`;
+      blob.style.fontSize = '30px';
+      blob.style.margin = 0;
+      blob.style.animation = 'none';
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+@import '../assets/css/vars';
+@import '../assets/css/functions';
+
+.blobs{
+  filter:url('#goo');
+  position:absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+
+@mixin animatetoPosition($animation-name, $r, $theta, $i) {
+    $x: $r * sin($theta);
+    $y: $r * cos($theta);
+
+    @keyframes #{$animation-name} {
+        0% {
+            transform:scale(1.1) translate(0, 0);
+        }
+        50%{
+            background-color: $water;
+            transform:scale(0.6) translate(0, $r);
+        }
+
+        100%{
+            background-color: nth($colors, $i);
+            transform:scale(0.5) translate($x, $y);
+        }
+    }
+}
+
+$items: 4;
+
+$r: 300px;
+$deg: -60deg; // This is the start angle, basacilly this will determine start point.
+$degSpace: 120deg / ($items - 1);
+
+@for $i from 1 through $items {
+    @include animatetoPosition('blob-user-#{$i}', $r, $deg, $i);
+    $deg: $deg + $degSpace;
+}
+
+
+@mixin make-blob($size, $bg-color, $font-size) {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+
+    width: $size;
+    height: $size;
+    //margin-top: -1 * $size / 2;
+    margin-left: -1 * $size / 2;
+
+    border-radius: 50%;
+
+    background-color: $bg-color;
+
+    color: #fff;
+    font-size: $font-size;
+    line-height: $size;
+    text-align: center;
+}
+
+
+.blob {
+  @include make-blob(150px, $water, 50px);
+  animation-duration: 4s;
+  animation-timing-function: cubic-bezier(0.770, 0.000, 0.175, 1.000);
+  animation-fill-mode: both;
+  
+  &__tasks {
+    @for $i from 1 through $items {
+      .blob:nth-child(#{$i}) { animation-name: blob-user-#{$i}; }
+    }
+  }
+}
+
+
+.blob-in {
+  animation-name: blob-user-1;
+}
+
+</style>
+
